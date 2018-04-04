@@ -19,7 +19,7 @@ You can use `async` / `await`:
 	try {
 
 		await ad.user().add({
-			userName: 'jsmith'
+			userName: 'jsmith',
 			firstName: 'John',
 			lastName: 'Smith',
 			location: '/Users/Sales',
@@ -37,7 +37,7 @@ You can use `async` / `await`:
 Or stick with promises:
 
 ```js
-ad.user('agnes').changePassword('d0ntForgetThisTime')\
+ad.user('agnes').password('d0ntForgetThisTime')
 	.then(() => ad.user('crook').disable())
 	.then(() => ad.user('larry').move('Dungeon'))
 	.catch((err) => {
