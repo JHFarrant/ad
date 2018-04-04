@@ -34,7 +34,7 @@ module.exports = {
         lastName,
         commonName,
         userName,
-        pass,
+        password,
         email,
         title,
         phone,
@@ -80,25 +80,29 @@ module.exports = {
         userPrincipalName: `${userName}@${this.config.domain}`,
         sAMAccountName: userName,
         objectClass: this.config.defaults.userObjectClass,
-        userPassword: ssha.create(pass)
+        userPassword: ssha.create(password)
       };
 
       this._addObject(`CN=${commonName}`, location, userObject)
         .then(res => {
           delete this._cache.users[userName];
           this._cache.all = {};
-          return this.setUserPassword(userName, pass);
+          return this.setUserPassword(userName, password);
         })
         .then(data => {
           let expirationMethod =
             passwordExpires === false
               ? 'setUserPasswordNeverExpires'
               : 'enableUser';
-          return this[expirationMethod](userName);
+          if (passwordExpires !== undefined) {
+            return this[expirationMethod](userName);
+          }
         })
         .then(data => {
           let enableMethod = enabled === false ? 'disableUser' : 'enableUser';
-          return this[enableMethod](userName);
+          if (enabled !== undefined) {
+            return this[enableMethod](userName);
+          }
         })
         .then(data => {
           delete userObject.userPassword;
@@ -288,9 +292,11 @@ module.exports = {
     const domain = this.config.domain;
     let fullUser = `${userName}@${domain}`;
     return new Promise(async (resolve, reject) => {
+      console.log('AUTH USER', fullUser, pass);
       this.ad.authenticate(fullUser, pass, (error, authorized) => {
         let code;
         let out = authorized;
+        console.log('BACK FROM AUTH', error, authorized);
         if (error && error.lde_message) {
           out.detail = error.lde_message;
           out.message = String(error.stack).split(':')[0];
