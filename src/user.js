@@ -22,6 +22,16 @@ const parseLocation = require('./util/parseLocation');
  *  removeUser(userName)
  */
 
+const defaultUserObjectMap = {
+  firstName: 'givenName',
+  lastName: 'sn',
+  password: 'unicodePwd',
+  commonName: 'cn',
+  email: 'mail',
+  title: 'title',
+  objectClass: 'objectClass',
+  userName: 'sAMAccountName'
+};
 module.exports = {
   async getAllUsers(opts) {
     return await this._findByType(opts, ['user']);
@@ -82,6 +92,12 @@ module.exports = {
         objectClass: this.config.defaults.userObjectClass,
         userPassword: ssha.create(password)
       };
+      const customUserObjectMap = this.config.customUserObjectMap;
+      Object.keys(customUserObjectMap).forEach(function(key) {
+        if (key in opts) {
+          userObject[customUserObjectMap[key]] = opts[key];
+        }
+      });
 
       this._addObject(`CN=${commonName}`, location, userObject)
         .then(res => {
@@ -131,16 +147,10 @@ module.exports = {
   async updateUser(userName, opts) {
     return new Promise((resolve, reject) => {
       const domain = this.config.domain;
-      const map = {
-        firstName: 'givenName',
-        lastName: 'sn',
-        password: 'unicodePwd',
-        commonName: 'cn',
-        email: 'mail',
-        title: 'title',
-        objectClass: 'objectClass',
-        userName: 'sAMAccountName'
-      };
+      const map = Object.assign(
+        defaultUserObjectMap,
+        this.config.customUserObjectMap
+      );
 
       let later = [];
       let operations = [];
@@ -238,6 +248,13 @@ module.exports = {
         includeMembership: ['all'],
         includeDeleted: false
       };
+      if (this.config && this.config.customUserObjectMap) {
+        params.attributes = ['dn'].concat(
+          Object.values(this.config.customUserObjectMap).concat(
+            Object.values(defaultUserObjectMap)
+          )
+        );
+      }
       this.ad.find(params, (err, results) => {
         if (err) {
           /* istanbul ignore next */

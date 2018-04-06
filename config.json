@@ -1,5 +1,8 @@
 {
   "defaults": {
     "userObjectClass": "inetOrgPerson"
+  },
+  "customUserObjectMap": {
+    "department": "department"
   }
 } 
