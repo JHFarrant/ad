@@ -39,11 +39,13 @@ test('user().add() should return a user', async () => {
       commonName: 'Test User 52',
       email: 'test52@foobar.net',
       title: 'Director of Test Section 52',
-      password: 'SuperWord173!!!'
+      password: 'SuperWord173!!!',
+      department: 'Marketing Department'
     })
     .catch(err => {
       expect(err).not.toBeDefined();
     });
+  expect(result.department).toBe('Marketing Department');
 });
 
 test('user().add({firstName, lastName}) should infer a commonName', async () => {
